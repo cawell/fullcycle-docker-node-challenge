@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  node:
+    build:
+      context: node
+      dockerfile: Dockerfile
+    container_name: fullcycle-challenge-node
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=example
+      - MYSQL_DATABASE=fullcycle
+    networks:
+      - node-challenge-net
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider http://localhost:3000/ || exit 1" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:1.25.4-alpine
+    container_name: fullcycle-challenge-nginx
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      node:
+        condition: service_healthy
+    networks:
+      - node-challenge-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+
+  mysql:
+    image: mysql:5.7
+    container_name: fullcycle-challenge-mysql
+    restart: always
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - MYSQL_ROOT_PASSWORD=example
+      - MYSQL_DATABASE=fullcycle
+    networks:
+      - node-challenge-net
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+
+volumes:
+  db-data:
+
+networks:
+  node-challenge-net:
+    driver: bridge
