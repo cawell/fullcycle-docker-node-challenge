@@ -4,12 +4,16 @@
   "description": "Um projeto simples usando Node.js e Express",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "nodemon index.js",
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "express": "^4.17.1",
     "mysql": "^2.18.1"
   },
   "author": "cawell",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
 }
